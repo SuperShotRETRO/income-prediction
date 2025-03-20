@@ -5,11 +5,12 @@ from django.urls import path
 from myapp.views import index, upload_file,register, user_login, user_logout, predict_income, prediction_history
 
 urlpatterns = [
+    path('', user_login, name='login'),
     path('register/', register, name='register'),
     path('login/', user_login, name='login'),
-     path('predict_income/', predict_income, name='predict_income'),
+    path('predict_income/', predict_income, name='predict_income'),
     path('logout/', user_logout, name='logout'),
-    path('', index, name='index'),
+    path('index/', index, name='index'),
     path('upload/', upload_file, name='upload_file'),
     path('history/',prediction_history, name='prediction_history')
 ]
