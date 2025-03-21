@@ -25,19 +25,29 @@ def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data['username']
+            firstname = form.cleaned_data['firstname']
+            lastname = form.cleaned_data['lastname']
+            email = form.cleaned_data['email']
             password = form.cleaned_data['password']
 
-            # Check if user already exists
-            if users_collection.find_one({'username': username}):
-                return render(request, 'auth.html', {'form': form, 'error': 'Username already exists'})
+            # Check if user already exists by email
+            if users_collection.find_one({'email': email}):
+                return render(request, 'auth.html', {'form': form, 'error': 'Email already exists'})
 
             # Hash the password before storing
             hashed_password = make_password(password)
-            users_collection.insert_one({'username': username, 'password': hashed_password})
 
-            # Store user in session (since Django auth won't work)
-            request.session['username'] = username
+            # Insert into MongoDB
+            user_data = {
+                'firstname': firstname,
+                'lastname': lastname,
+                'email': email,
+                'password': hashed_password
+            }
+            res = users_collection.insert_one(user_data)
+            print(res)
+            # Store user in session
+            request.session['email'] = email
             return redirect('index')
 
     else:
@@ -48,17 +58,17 @@ def register(request):
 
 def user_login(request):
     if request.method == 'POST':
-        username = request.POST['username']
+        email = request.POST['email']
         password = request.POST['password']
 
-        user = users_collection.find_one({'username': username})
+        user = users_collection.find_one({'email': email})
 
         if user and check_password(password, user['password']):
             # Store user in session
-            request.session['username'] = username
+            request.session['email'] = email
             return redirect('index')
 
-        return render(request, 'auth.html', {'error': 'Invalid username or password'})
+        return render(request, 'auth.html', {'error': 'Invalid email or password'})
 
     return render(request, 'auth.html')
 
